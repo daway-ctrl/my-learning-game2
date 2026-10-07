@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互動教學小遊戲合集</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Microsoft JhengHei, sans-serif;
+        }
+        body {
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        /* 遊戲切換選單 */
+        .game-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-btn {
+            background-color: #ffffff;
+            border: 2px solid #3498db;
+            color: #3498db;
+            padding: 8px 16px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .nav-btn:hover, .nav-btn.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        /* 遊戲區域面板 */
+        .game-container {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 650px;
+            width: 100%;
+            display: none;
+        }
+        .game-container.active {
+            display: block;
+        }
+
+        .info-panel {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            background: #eef6fb;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        /* 遊戲 1: 記憶翻牌 */
+        .grid-memory {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .card {
+            background-color: #3498db;
+            color: white;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            text-align: center;
+            padding: 5px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .card.flipped {
+            background-color: #ffffff;
+            color: #2c3e50;
+            border: 2px solid #3498db;
+        }
+        .card.matched {
+            background-color: #2ecc71;
+            color: white;
+            cursor: default;
+        }
+
+        /* 遊戲 2: 快問快答 */
+        .quiz-question {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option-btn {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .option-btn:hover {
+            background-color: #e2e6ea;
+        }
+
+        /* 遊戲 3: 單字拼字 */
+        .spelling-box {
+            text-align: center;
+        }
+        .spelling-hint {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        .spelling-input {
+            width: 80%;
+            padding: 10px;
+            font-size: 1.1rem;
+            border: 2px solid #3498db;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* 控制按鈕與提示 */
+        .action-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .action-btn:hover {
+            background-color: #27ae60;
+        }
+        .feedback {
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 480px) {
+            .grid-memory {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎓 教學小遊戲互動平台</h1>
+        <p>請選擇你想挑戰的教學遊戲類型：</p>
+    </header>
+
+    <!-- 遊戲選單 -->
+    <nav class="game-nav">
+        <button class="nav-btn active" onclick="switchGame('memory')">🧩 概念翻牌</button>
+        <button class="nav-btn" onclick="switchGame('quiz')">⚡ 知識快問快答</button>
+        <button class="nav-btn" onclick="switchGame('spelling')">🔤 單字/關鍵字拼字</button>
+    </nav>
+
+    <!-- 遊戲 1: 概念翻牌 -->
+    <div id="game-memory" class="game-container active">
+        <h2>🧩 概念翻牌對對碰</h2>
+        <div class="info-panel">
+            嘗試次數：<span id="mem-moves">0</span> | 完成配對：<span id="mem-matches">0</span> / 4
+        </div>
+        <div class="grid-memory" id="memory-grid"></div>
+        <button class="action-btn" onclick="initMemoryGame()">重新開始</button>
+    </div>
+
+    <!-- 遊戲 2: 快問快答 -->
+    <div id="game-quiz" class="game-container">
+        <h2>⚡ 知識快問快答</h2>
+        <div class="info-panel">
+            目前得分：<span id="quiz-score">0</span> 分
+        </div>
+        <div id="quiz-content">
+            <div class="quiz-question" id="quiz-question-text">載入中...</div>
+            <div class="quiz-options" id="quiz-options-container"></div>
+            <div class="feedback" id="quiz-feedback"></div>
+        </div>
+        <button class="action-btn" id="next-quiz-btn" style="display:none;" onclick="nextQuestion()">下一題</button>
+    </div>
+
+    <!-- 遊戲 3: 單字拼字 -->
+    <div id="game-spelling" class="game-container">
+        <h2>🔤 關鍵字與單字拼字練習</h2>
+        <div class="info-panel">
+            關卡：<span id="spell-idx">1</span> / <span id="spell-total">0</span>
+        </div>
+        <div class="spelling-box">
+            <div class="spelling-hint" id="spell-hint">提示載入中...</div>
+            <input type="text" class="spelling-input" id="spell-input" placeholder="請在此輸入英文/關鍵字" autocomplete="off">
+            <br>
+            <button class="action-btn" onclick="checkSpelling()">提交答案</button>
+            <div class="feedback" id="spell-feedback"></div>
+        </div>
+    </div>
+
+    <script>
+        // ================= 全局切換邏輯 =================
+        function switchGame(gameType) {
+            document.querySelectorAll('.game-container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            if(gameType === 'memory') {
+                document.getElementById('game-memory').classList.add('active');
+                event.target.classList.add('active');
+                initMemoryGame();
+            } else if(gameType === 'quiz') {
+                document.getElementById('game-quiz').classList.add('active');
+                event.target.classList.add('active');
+                initQuizGame();
+            } else if(gameType === 'spelling') {
+                document.getElementById('game-spelling').classList.add('active');
+                event.target.classList.add('active');
+                initSpellingGame();
+            }
+        }
+
+        // ================= 遊戲 1: 翻牌對對碰 =================
+        const memoryData = [
+            { text: "光合作用", matchId: 1 }, { text: "植物利用陽光製造養分", matchId: 1 },
+            { text: "地心引力", matchId: 2 }, { text: "物體相互吸引的力量", matchId: 2 },
+            { text: "蒸發", matchId: 3 }, { text: "液體轉為氣體的過程", matchId: 3 },
+            { text: "細胞", matchId: 4 }, { text: "生物體結構基本單位", matchId: 4 }
+        ];
+        let memCards = [], flippedCards = [], memMoves = 0, memMatches = 0;
+
+        function initMemoryGame() {
+            const grid = document.getElementById('memory-grid');
+            grid.innerHTML = '';
+            memCards = [...memoryData].sort(() => Math.random() - 0.5);
+            flippedCards = [];
+            memMoves = 0;
+            memMatches = 0;
+            updateMemStats();
+
+            memCards.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.index = index;
+                card.dataset.matchId = item.matchId;
+                card.innerText = '❓';
+                card.onclick = handleMemCardClick;
+                grid.appendChild(card);
+            });
+        }
+
+        function handleMemCardClick() {
+            if (flippedCards.length === 2 || this.classList.contains('flipped') || this.classList.contains('matched')) return;
+
+            this.classList.add('flipped');
+            this.innerText = memCards[this.dataset.index].text;
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) {
+                memMoves++;
+                updateMemStats();
+                const [c1, c2] = flippedCards;
+                if (c1.dataset.matchId === c2.dataset.matchId) {
+                    c1.classList.add('matched');
+                    c2.classList.add('matched');
+                    memMatches++;
+                    updateMemStats();
+                    flippedCards = [];
+                    if (memMatches === memoryData.length / 2) alert(`🎉 恭喜完成！總共花了 ${memMoves} 次嘗試。`);
+                } else {
+                    setTimeout(() => {
+                        c1.classList.remove('flipped'); c2.classList.remove('flipped');
+                        c1.innerText = '❓'; c2.innerText = '❓';
+                        flippedCards = [];
+                    }, 1000);
+                }
+            }
+        }
+
+        function updateMemStats() {
+            document.getElementById('mem-moves').innerText = memMoves;
+            document.getElementById('mem-matches').innerText = memMatches;
+        }
+
+        // ================= 遊戲 2: 快問快答 =================
+        const quizQuestions = [
+            { q: "太陽系中最大的行星是哪一顆？", options: ["地球", "火星", "木星", "土星"], answer: 2 },
+            { q: "水的化學分子式是什麼？", options: ["CO2", "H2O", "O2", "NaCl"], answer: 1 },
+            { q: "光速大約是每秒多少公里？", options: ["30 萬公里", "15 萬公里", "100 萬公里", "3000 公里"], answer: 0 }
+        ];
+        let currentQuizIdx = 0, quizScore = 0;
+
+        function initQuizGame() {
+            currentQuizIdx = 0;
+            quizScore = 0;
+            document.getElementById('quiz-score').innerText = quizScore;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = quizQuestions[currentQuizIdx];
+            document.getElementById('quiz-question-text').innerText = `${currentQuizIdx + 1}.${q.q}`;
+            document.getElementById('quiz-feedback').innerText = '';
+            document.getElementById('next-quiz-btn').style.display = 'none';
+
+            const optsContainer = document.getElementById('quiz-options-container');
+            optsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.classList.add('option-btn');
+                btn.innerText = opt;
+                btn.onclick = () => checkQuizAnswer(idx);
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function checkQuizAnswer(selectedIdx) {
+            const q = quizQuestions[currentQuizIdx];
+            const feedback = document.getElementById('quiz-feedback');
+            
+            // 停用所有選項按鈕
+            document.querySelectorAll('.option-btn').forEach(btn => btn.onclick = null);
+
+            if (selectedIdx === q.answer) {
+                feedback.innerText = "✅ 回答正確！";
+                feedback.style.color = "#2ecc71";
+                quizScore += 10;
+                document.getElementById('quiz-score').innerText = quizScore;
+            } else {
+                feedback.innerText = `❌ 答錯了！正確答案是
